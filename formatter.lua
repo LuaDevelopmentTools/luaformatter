@@ -13,7 +13,7 @@
 -- Uses Metalua capabilities to indent code and provide source code offset
 -- semantic depth.
 --
--- @module luaformatter
+-- @module formatter
 --
 --------------------------------------------------------------------------------
 
@@ -22,6 +22,8 @@ require 'metalua.loader'
 local math = require 'math'
 local mlc  = require 'metalua.compiler'.new()
 local Q    = require 'metalua.treequery'
+
+local COMMENT = '--'
 
 --------------------------------------------------------------------------------
 -- Format utilities
@@ -234,7 +236,7 @@ end
 
 function case.Index(cfg, st, node, parent)
 
-  -- Bug 422778 - [ast] Missing a lineinfo attribute on one Index 
+  -- Bug 422778 - [ast] Missing a lineinfo attribute on one Index
   -- the following if is a workaround avoid a nil exception but the formatting
   -- of the current node is avoided.
   if not node.lineinfo then
@@ -347,10 +349,10 @@ local function getindentlevel(source, indenttable)
 
   --
   local state = {
-  -- Indentations line numbers
+    -- Indentations line numbers
     indentation = { },
-  -- Key:   Line number to indent back.
-  -- Value: Previous line number, it has the indentation depth wanted.
+    -- Key:   Line number to indent back.
+    -- Value: Previous line number, it has the indentation depth wanted.
     unindentation = { }
   }
 
@@ -410,8 +412,8 @@ end
 --------------------------------------------------------------------------------
 -- Indent Lua Source Code.
 --
--- @function [parent=#luaformatter] indentcode
--- @param source source code to format
+-- @function [parent=#formatter] indentcode
+-- @param #string source source code to format
 -- @param delimiter line delimiter to use
 -- @param indenttable true if you want to indent in table
 -- @param ...
@@ -448,6 +450,13 @@ function M.indentcode(source, delimiter,indenttable, ...)
   -- Initialization represent string start offset
   local delimiterLength = delimiter:len()
   local positions = {1-delimiterLength}
+
+  -- Handle shebang
+  local shebang = source:match('^#')
+  if shebang then
+    -- Simply comment shebang when formating
+    source = table.concat({COMMENT, source})
+  end
 
   --
   -- Seek for delimiters
@@ -510,7 +519,12 @@ function M.indentcode(source, delimiter,indenttable, ...)
     end
   end
 
-  return table.concat(indented)
+  -- Uncomment shebang when needed
+  local formattedcode = table.concat(indented)
+  if shebang and #formattedcode then
+    return formattedcode:sub(1 + #COMMENT)
+  end
+  return formattedcode
 end
 
 return M
