@@ -8,9 +8,9 @@ end
 local help = [[Formats Lua code.
   -i, --indentation (default '  ') String used as an indentation.
   -d, --delimiter (default unix) Type of new line to detect and use while formatting:
-    * mac: '\r' CR Carriage return.
     * unix: '\n' LF Line feed.
     * windows: '\r\n' CR+LF
+    * mac: '\r' CR Carriage Return of Macs before OSX.
   -t, --formattable (default yes) Indicates if tables have to formatted.
   -h, --help This help.
   [files] Files to format.

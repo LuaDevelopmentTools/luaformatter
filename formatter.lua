@@ -410,11 +410,35 @@ local function trim(string)
 end
 
 --------------------------------------------------------------------------------
+-- Provides position of next end of line
+--
+-- @param #string str Where to seek for end of line
+-- @param #number strstart Search starting index
+-- @return #number, #number Start and end of end of line
+-- @return #nil When no end of line is found
+--------------------------------------------------------------------------------
+local delimiterposition = function (str, strstart)
+  local starts = {}
+  local ends = {}
+  for _, delimiter in ipairs({'\r\n', '\n', '\r'}) do
+    local dstart, dend = str:find(delimiter, strstart, true)
+    if dstart and not ends[dstart] then
+      starts[#starts + 1] = dstart
+      ends[dstart] = dend
+    end
+  end
+  if #starts > 0 then
+    local min = math.min( unpack(starts) )
+    return min, ends[min]
+  end
+end
+
+--------------------------------------------------------------------------------
 -- Indent Lua Source Code.
 --
 -- @function [parent=#formatter] indentcode
--- @param #string source source code to format
--- @param delimiter line delimiter to use
+-- @param #string source Source code to format
+-- @param #string delimiter Delimiter used in resulting formatted source
 -- @param indenttable true if you want to indent in table
 -- @param ...
 -- @return #string formatted code
@@ -447,9 +471,8 @@ function M.indentcode(source, delimiter,indenttable, ...)
   end
 
   -- Delimiter position table
-  -- Initialization represent string start offset
-  local delimiterLength = delimiter:len()
-  local positions = {1-delimiterLength}
+  -- Initialization represent string's start offset
+  local positions = {0}
 
   -- Handle shebang
   local shebang = source:match('^#')
@@ -459,37 +482,41 @@ function M.indentcode(source, delimiter,indenttable, ...)
   end
 
   --
-  -- Seek for delimiters
+  -- Seek for delimiters positions
   --
-  local i = 1
-  local delimiterPosition = nil
+  local sourcePosition = 1
   repeat
-    delimiterPosition = source:find(delimiter, i, true)
-    if delimiterPosition then
-      positions[#positions + 1] = delimiterPosition
-      i = delimiterPosition + 1
+    -- Find end of line
+    local delimiterStart, delimiterEnd = delimiterposition(source,
+      sourcePosition)
+    if delimiterStart then
+      if delimiterEnd < #source then
+        positions[#positions + 1] = delimiterStart
+      end
+      sourcePosition = delimiterEnd + 1
     end
-  until not delimiterPosition
-  -- No need for indentation, while no delimiter has been found
+  until not delimiterStart
+
+  -- No need for indentation, when no delimiter has been found
   if #positions < 2 then
-    return source
+    return shebang and source:sub(1 + #COMMENT) or source
   end
 
   -- calculate indentation
-  local linetodepth = getindentlevel(source,indenttable)
+  local linetodepth = getindentlevel(source, indenttable)
 
   -- Concatenate string with right indentation
   local indented = {}
-  for  position=1, #positions do
+  for position=1, #positions do
     -- Extract source code line
     local offset = positions[position]
     -- Get the interval between two positions
     local rawline
     if positions[position + 1] then
-      rawline = source:sub(offset + delimiterLength, positions[position + 1] -1)
+      rawline = source:sub(offset + 1, positions[position + 1] -1)
     else
       -- From current position to end of line
-      rawline = source:sub(offset + delimiterLength)
+      rawline = source:sub(offset + 1)
     end
 
     -- Trim white spaces
@@ -497,26 +524,29 @@ function M.indentcode(source, delimiter,indenttable, ...)
     if not indentcount then
       indented[#indented+1] = rawline
     else
-      local line = trim(rawline)
-      -- Append right indentation
       -- Indent only when there is code on the line
-      if line:len() > 0 then
-        -- Compute next real depth related offset
-        -- As is offset is pointing a white space before first statement
-        -- of block,
-        -- We will work with parent node depth
-        indented[#indented+1] = tabulation( indentcount )
+      local line = trim(rawline)
+      if #line > 0 then
+
+        -- Prefix with right indentation
+        if indentcount > 0 then
+          indented[#indented+1] = tabulation( indentcount )
+        end
+
         -- Append trimmed source code
         indented[#indented+1] = line
       end
     end
-    -- Append carriage return
-    -- While on last character append carriage return only if at end of
-    -- original source
-    local endofline = source:sub(source:len()-delimiterLength, source:len())
-    if position < #positions or endofline == delimiter then
+
+    -- Append new line
+    if position < #positions then
       indented[#indented+1] = delimiter
     end
+  end
+
+  -- Ensure single final new line
+  if #indented > 0 and not indented[#indented]:match('%s$') then
+    indented[#indented + 1] = delimiter
   end
 
   -- Uncomment shebang when needed
