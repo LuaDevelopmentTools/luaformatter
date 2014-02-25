@@ -441,11 +441,13 @@ end
 -- @param #string delimiter Delimiter used in resulting formatted source
 -- @param indenttable true if you want to indent in table
 -- @param ...
--- @return #string formatted code
+-- @return #string Formatted code
+-- @return #nil, #string In case of error
 -- @usage indentCode('local var', '\n', true, '\t')
 -- @usage indentCode('local var', '\n', true, --[[tabulationSize]]4, --[[indentationSize]]2)
 --------------------------------------------------------------------------------
 function M.indentcode(source, delimiter,indenttable, ...)
+
   --
   -- Create function which will generate indentation
   --
@@ -480,6 +482,10 @@ function M.indentcode(source, delimiter,indenttable, ...)
     -- Simply comment shebang when formating
     source = table.concat({COMMENT, source})
   end
+
+  -- Check code validity
+  local status, message = loadstring(source,"isCodeValid")
+  if not status then return status, message end
 
   --
   -- Seek for delimiters positions

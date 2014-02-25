@@ -13,7 +13,7 @@ local help = [[Formats Lua code.
     * windows: '\r\n' CR+LF
     * mac: '\r' CR Carriage Return of Macs before OSX.
   -h, --help This help.
-  <indentationsize> (number) Count of spaces or tabulation to use as indentation.
+  <indentationsize> (number) Count of spaces or tabulations to use as indentation.
   [files] Files to format.
 ]]
 local lapp = require 'pl.lapp'
@@ -67,11 +67,12 @@ for _, filename in ipairs(args) do
   if not code then print( err ) return end
   file:close()
 
-  -- Check if code is valid
-  local valid, err = pcall(loadstring, code, 'codetoformat')
-  if not valid then print(err) return end
-
   -- Format source
-  local formatted = formatter.indentcode(code, delimiter, true, indentation)
-  io.write(formatted)
+  local formatted, errormessage = formatter.indentcode(code, delimiter, true,
+    indentation)
+  if formatted then
+    io.write(formatted)
+  else
+    print(string.format('Unable to format `%s`:\n%s', filename, errormessage))
+  end
 end
