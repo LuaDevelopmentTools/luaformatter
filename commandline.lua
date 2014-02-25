@@ -6,13 +6,14 @@ if _VERSION ~= 'Lua 5.1' then
 end
 
 local help = [[Formats Lua code.
-  -i, --indentation (default '  ') String used as an indentation.
+  -s, --spaces Use spaces as indentation.
+  -t, --tabs   Use tabulations as indentation.
   -d, --delimiter (default unix) Type of new line to detect and use while formatting:
     * unix: '\n' LF Line feed.
     * windows: '\r\n' CR+LF
     * mac: '\r' CR Carriage Return of Macs before OSX.
-  -t, --formattable (default yes) Indicates if tables have to formatted.
   -h, --help This help.
+  <indentationsize> (number) Count of spaces or tabulation to use as indentation.
   [files] Files to format.
 ]]
 local lapp = require 'pl.lapp'
@@ -30,10 +31,14 @@ end
 if #args == 0 then
   print 'No files to format.'
   return
+elseif not (args.spaces or args.tabs) then
+  print 'No indentation sequence, please provide --spaces or --tabs.'
+  return
 end
 
--- Indent tables
-local formattable = string.lower(args.formattable) == 'yes'
+-- Compute indentation
+local char = args.tabs and '\t' or ' '
+local indentation = char:rep(args.indentationsize)
 
 -- End of line to use
 local delimiters = {
@@ -67,7 +72,6 @@ for _, filename in ipairs(args) do
   if not valid then print(err) return end
 
   -- Format source
-  local formatted = formatter.indentcode(code, delimiter, formattable,
-    args.indentation)
+  local formatted = formatter.indentcode(code, delimiter, true, indentation)
   io.write(formatted)
 end

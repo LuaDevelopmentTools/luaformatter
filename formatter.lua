@@ -442,7 +442,7 @@ end
 -- @param indenttable true if you want to indent in table
 -- @param ...
 -- @return #string formatted code
--- @usage indentCode('local var', '\n', true, '\t',)
+-- @usage indentCode('local var', '\n', true, '\t')
 -- @usage indentCode('local var', '\n', true, --[[tabulationSize]]4, --[[indentationSize]]2)
 --------------------------------------------------------------------------------
 function M.indentcode(source, delimiter,indenttable, ...)
