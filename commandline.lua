@@ -6,6 +6,7 @@ if _VERSION ~= 'Lua 5.1' then
 end
 
 local help = [[Formats Lua code.
+  -a, --autosave Flush formatted Lua in given file instead of stdout.
   -s, --spaces (default 2) Spaces to use as indentation.
   -t, --tabs   (default 0) Tabulation(s) to use as indentation.
   -d, --delimiter (default unix) Type of new line to detect and use while formatting:
@@ -68,7 +69,7 @@ for _, filename in ipairs(args) do
   --
   -- Reading file
   --
-  local file, err = io.open(filename,'r')
+  local file, err = io.open(filename, 'r')
   if not file then print( err ) return end
   local code, err = file:read('*a')
   if not code then print( err ) return end
@@ -78,7 +79,16 @@ for _, filename in ipairs(args) do
   local formatted, errormessage = formatter.indentcode(code, delimiter, true,
     indentation)
   if formatted then
-    io.write(formatted)
+    if args.autosave then
+      -- Saving formatted code straight in original file
+      local file, err = io.open(filename, 'w+')
+      if not file then print( err ) return end
+      local code, err = file:write(formatted)
+      if not code then print( err ) return end
+      file:close()
+    else
+      io.write(formatted)
+    end
   else
     print(string.format('Unable to format `%s`:\n%s', filename, errormessage))
   end
