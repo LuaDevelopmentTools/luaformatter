@@ -1,5 +1,5 @@
-package = 'LuaFormatter'
-version = '0.1.0-2'
+package = 'Formatter'
+version = '0.1.0-1'
 description = {
   summary = 'Beautifies Lua code.',
   detailed = [[
@@ -13,19 +13,13 @@ description = {
 }
 source = {
   url = 'git://github.com/LuaDevelopmentTools/luaformatter.git',
-  tag = 'v0.1.0-2'
+  tag = 'v0.1.0'
 }
 dependencies = {
-  'metalua-compiler == 0.7.2',
-  'penlight ~> 0.9.8'
+  'metalua-compiler == 0.7.2'
 }
 build = {
   type = 'builtin',
-  install = {
-    bin = {
-      luaformatter = 'commandline.lua'
-    },
-  },
   modules = {
     formatter = 'formatter.lua'
   }
