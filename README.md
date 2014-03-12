@@ -13,6 +13,12 @@ It is plain _Lua 5.1_.
 * Lua 5.1
 * Metalua >= 0.7
 
+## Installation
+
+```sh
+$ luarocks install --local formatter
+```
+
 ## How does it work?
 
 ### Library
