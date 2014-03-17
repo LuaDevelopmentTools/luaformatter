@@ -12,10 +12,11 @@ description = {
   license = 'EPL'
 }
 source = {
-  url = 'https://github.com/LuaDevelopmentTools/luaformatter/archive/v0.1.1-1.zip'
+  url = 'git://github.com/LuaDevelopmentTools/luaformatter.git',
+  tag = 'v0.1.1-1'
 }
 dependencies = {
-  'metalua-compiler >= 0.7',
+  'metalua-compiler == 0.7.3',
   'penlight ~> 0.9.8'
 }
 build = {
