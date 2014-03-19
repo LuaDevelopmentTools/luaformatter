@@ -16,7 +16,8 @@ source = {
   tag = 'v0.1.1-1'
 }
 dependencies = {
-  'metalua-compiler == 0.7.3',
+  'lua ~> 5.1',
+  'metalua-compiler ~> 0.7',
   'penlight ~> 0.9.8'
 }
 build = {
