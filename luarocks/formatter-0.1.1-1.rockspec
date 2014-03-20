@@ -18,7 +18,7 @@ source = {
 dependencies = {
   'lua ~> 5.1',
   'metalua-compiler ~> 0.7',
-  'penlight ~> 0.9.8'
+  'penlight ~> 0.9'
 }
 build = {
   type = 'builtin',
