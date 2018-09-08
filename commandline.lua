@@ -74,7 +74,7 @@ if args.stdin then
       indentation)
 
      if formatted then
-      print( string.format('%s\n', formatted) )
+      print( formatted )
      else
             print(string.format('Unable to format stdin:\n%s', errormessage))
      end
