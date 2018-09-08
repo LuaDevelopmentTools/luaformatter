@@ -6,6 +6,7 @@ if _VERSION ~= 'Lua 5.1' then
 end
 
 local help = [[Formats Lua code.
+  -i, --stdin Read buffer from stdin.
   -a, --autosave Flush formatted Lua in given file instead of stdout.
   -s, --spaces (default 2) Spaces to use as indentation.
   -t, --tabs   (default 0) Tabulation(s) to use as indentation.
@@ -28,7 +29,7 @@ end
 --
 -- Check arguments
 --
-if #args == 0 then
+if not args.stdin and #args == 0 then
   print 'No files to format.'
   return
 elseif not (args.spaces or args.tabs) then
@@ -64,32 +65,47 @@ end
 -- Output formatted file
 --
 local formatter = require 'formatter'
-for _, filename in ipairs(args) do
 
-  --
-  -- Reading file
-  --
-  local file, err = io.open(filename, 'r')
-  if not file then print( err ) return end
-  local code, err = file:read('*a')
-  if not code then print( err ) return end
-  file:close()
+-- Read from stdin
+if args.stdin then
+  code = io.read("*a")
+    -- Format source
+    local formatted, errormessage = formatter.indentcode(code, delimiter, true,
+      indentation)
 
-  -- Format source
-  local formatted, errormessage = formatter.indentcode(code, delimiter, true,
-    indentation)
-  if formatted then
-    if args.autosave then
-      -- Saving formatted code straight in original file
-      local file, err = io.open(filename, 'w+')
-      if not file then print( err ) return end
-      local code, err = file:write(formatted)
-      if not code then print( err ) return end
-      file:close()
+     if formatted then
+      print( string.format('%s\n', formatted) )
+     else
+            print(string.format('Unable to format stdin:\n%s', errormessage))
+     end
+else
+  for _, filename in ipairs(args) do
+
+    --
+    -- Reading file
+    --
+    local file, err = io.open(filename, 'r')
+    if not file then print( err ) return end
+    local code, err = file:read('*a')
+    if not code then print( err ) return end
+    file:close()
+
+    -- Format source
+    local formatted, errormessage = formatter.indentcode(code, delimiter, true,
+      indentation)
+    if formatted then
+      if args.autosave then
+        -- Saving formatted code straight in original file
+        local file, err = io.open(filename, 'w+')
+        if not file then print( err ) return end
+        local code, err = file:write(formatted)
+        if not code then print( err ) return end
+        file:close()
+      else
+        io.write(formatted)
+      end
     else
-      io.write(formatted)
+      print(string.format('Unable to format `%s`:\n%s', filename, errormessage))
     end
-  else
-    print(string.format('Unable to format `%s`:\n%s', filename, errormessage))
   end
 end
